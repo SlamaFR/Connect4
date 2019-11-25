@@ -203,7 +203,7 @@ def draw_all(grid: list, player: int, playing: bool, ticks: float, winner: int):
     draw_time(ticks)
 
 
-def motion(ev):
+def draw_preview_pawn(ev):
     effacer('preview')
     if not PLAYING:
         return
@@ -218,8 +218,8 @@ def motion(ev):
 def loop():
     global PLAYER, PLAYING
 
-    creer_fenetre(WINDOW_WIDTH, WINDOW_HEIGHT + BAR_HEIGHT, nom="Puissance 4")
-    ecouter_ev('Deplacement', motion)
+    creer_fenetre(WINDOW_WIDTH, WINDOW_HEIGHT + BAR_HEIGHT, nom="Puissance 4", evenement=['ClicGauche'])
+    ecouter_ev('Deplacement', draw_preview_pawn)
 
     grid = build_grid()
     winner = 0
@@ -273,6 +273,7 @@ def loop():
                 buttons.clear()
                 effacer_tout()
                 draw_all(grid, PLAYER, PLAYING, ticks, winner)
+                draw_preview_pawn(ev)
                 if win[1]:
                     draw_win_pawns(win[1], winner)
 
