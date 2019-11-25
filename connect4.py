@@ -1,7 +1,7 @@
 from doctest import testmod
 from time import time
 
-from upemtk import *
+from UpemTK.upemtk import *
 
 CELL_SIZE = 50
 BOARD_WIDTH = 7
