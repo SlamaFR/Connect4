@@ -16,8 +16,6 @@ DIRECTIONS = [(1, 1), (1, -1), (1, 0), (0, 1)]
 
 RUNNING = True
 START = True
-PLAYING = True
-PLAYER = -1
 
 
 def pixel_to_cell(x: int, y: int):
@@ -203,29 +201,30 @@ def draw_all(grid: list, player: int, playing: bool, ticks: float, winner: int):
     draw_time(ticks)
 
 
-def draw_preview_pawn(ev):
+def draw_preview_pawn(ev, states: dict):
     effacer('preview')
-    if not PLAYING:
+    if not states["playing"]:
         return
     column = pixel_to_cell(abscisse(ev), ordonnee(ev))[0]
     if X_MARGIN < abscisse(ev) < WINDOW_WIDTH - X_MARGIN and Y_MARGIN < ordonnee(ev) < WINDOW_HEIGHT - Y_MARGIN:
         x = cell_to_pixel(column, 0)[0] + .25 * (abscisse(ev) - cell_to_pixel(column, 0)[0])
-        cercle(x, Y_MARGIN - CELL_SIZE / 4, 7 / 16 * CELL_SIZE, remplissage='red' if PLAYER < 0 else 'gold',
+        cercle(x, Y_MARGIN - CELL_SIZE / 4, 7 / 16 * CELL_SIZE, remplissage='red' if states["player"] < 0 else 'gold',
                tag='preview')
         arriere_plan('preview')
 
 
 def loop():
-    global PLAYER, PLAYING
 
     creer_fenetre(WINDOW_WIDTH, WINDOW_HEIGHT + BAR_HEIGHT, nom="Puissance 4", evenement=['ClicGauche'])
-    ecouter_ev('Deplacement', draw_preview_pawn)
 
     grid = build_grid()
     winner = 0
     ticks = 0
     last_time = time()
     last_round_time = -1
+    states = {"playing": True, "player": -1}
+
+    ecouter_ev('Deplacement', draw_preview_pawn, states)
 
     while RUNNING:
         if START:
@@ -233,12 +232,12 @@ def loop():
             grid = build_grid()
             winner = 0
             ticks = 0
-            PLAYING = True
-            PLAYER = -1
+            states["playing"] = True
+            states["player"] = -1
             last_time = time()
             last_round_time = -1
 
-            draw_all(grid, PLAYER, PLAYING, ticks, winner)
+            draw_all(grid, states["player"], states["playing"], ticks, winner)
 
         ev = donner_ev()
         ty = type_ev(ev)
@@ -247,7 +246,7 @@ def loop():
         elif ty == 'ClicGauche':
             left_click(ev)
 
-        if PLAYING:
+        if states["playing"]:
             if ty == 'ClicGauche' and ticks > 0:
                 x, y = pixel_to_cell(abscisse(ev), ordonnee(ev))
 
@@ -258,22 +257,22 @@ def loop():
                 if x not in moves.keys():
                     continue
 
-                grid[x][moves[x]] = PLAYER
-                win = check_win(grid, PLAYER)
+                grid[x][moves[x]] = states["player"]
+                win = check_win(grid, states["player"])
 
                 if not allowed_moves(grid):
-                    PLAYING = False
+                    states["playing"] = False
 
-                if PLAYING and win[0]:
-                    winner = PLAYER
-                    PLAYING = False
+                if states["playing"] and win[0]:
+                    winner = states["player"]
+                    states["playing"] = False
                 else:
-                    PLAYER *= -1
+                    states["player"] *= -1
 
                 buttons.clear()
                 effacer_tout()
-                draw_all(grid, PLAYER, PLAYING, ticks, winner)
-                draw_preview_pawn(ev)
+                draw_all(grid, states["player"], states["playing"], ticks, winner)
+                draw_preview_pawn(ev, states)
                 if win[1]:
                     draw_win_pawns(win[1], winner)
 
